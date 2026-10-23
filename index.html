@@ -1,4 +1,4 @@
-<title>Vitrina PicksOnline</title>
+<title>Ventas de productos · PicksOnline</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;700&display=swap">
@@ -139,8 +139,8 @@ const ICON = {
 
 function waLink(item){
   const txt = item.tipo === "servicio"
-    ? `Hola PicksOnline, vi en la vitrina el servicio "${item.nombre}". ¿Me pueden dar más información?`
-    : `Hola PicksOnline, vi en la vitrina el ${item.nombre} (${item.precio}). ¿Está disponible?`;
+    ? `Hola PicksOnline, vi en Ventas de productos el servicio "${item.nombre}". ¿Me pueden dar más información?`
+    : `Hola PicksOnline, vi en Ventas de productos el ${item.nombre} (${item.precio}). ¿Está disponible?`;
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(txt)}`;
 }
 
