@@ -106,7 +106,7 @@ h1{margin:0;font-family:var(--display);font-weight:800;font-size:1.5rem;letter-s
 const WHATSAPP = "573052577821";
 // Enlace CSV de Google Sheets (Archivo > Compartir > Publicar en la web > CSV).
 // Columnas: categoria, nombre, precio, etiqueta, descripcion, pagos, foto, activo
-const SHEET_CSV = "";
+const SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ6uAGvbTSyTheoDRY-KX0z4dlEkS8MV-UbgJCdi7rSd3ODSHD3PBeRd77zcuIWt6PCwf_QlHgfwUlL/pub?gid=1697401565&single=true&output=csv";
 // ============================
 
 let DEMO = true;
@@ -151,9 +151,10 @@ const slug = t => norm(t).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 const esServicio = it => norm(it.categoria).startsWith("servicio");
 
 function waLink(it){
-  const txt = esServicio(it)
-    ? `Hola PicksOnline, vi en la Tienda el servicio "${it.nombre}". ¿Me pueden dar más información?`
-    : `Hola PicksOnline, vi en la Tienda el ${it.nombre} (${it.precio}). ¿Está disponible?`;
+  const txt = (esServicio(it)
+    ? `Hola PicksOnline, vi en la Tienda el servicio "${it.nombre}" (${it.precio}) y quiero solicitarlo.`
+    : `Hola PicksOnline, vi en la Tienda el ${it.nombre} (${it.precio}) y lo quiero comprar.`)
+    + (it.foto ? `\nFoto del producto: ${it.foto}` : "");
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(txt)}`;
 }
 
