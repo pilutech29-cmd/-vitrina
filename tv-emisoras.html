@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>TV y Emisoras</title>
+<style>
+  :root{--bg1:#0B1020;--bg2:#1E1446;--acc:#2F6FE0;--oro:#F2B632;--txt:#fff;--suave:#A7B0C8;--card:rgba(255,255,255,.07)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--txt);font-family:"Amazon Ember",Roboto,Arial,sans-serif}
+  #app{position:absolute;inset:0;display:flex;flex-direction:column;padding:40px 70px 0}
+  header{display:flex;align-items:center;gap:40px;margin-bottom:26px}
+  .marca{font-size:34px;font-weight:700;letter-spacing:.5px}
+  .marca b{color:var(--oro)}
+  nav{display:flex;gap:18px}
+  .tab{font-size:28px;padding:12px 30px;border-radius:40px;background:var(--card);color:var(--suave);border:3px solid transparent}
+  .tab.activa{background:var(--acc);color:#fff}
+  .hora{margin-left:auto;font-size:28px;color:var(--suave)}
+  main{flex:1;overflow:hidden;position:relative}
+  #contenido{position:absolute;inset:0;overflow-y:auto;padding:20px 22px 160px;scroll-behavior:smooth}
+  #contenido::-webkit-scrollbar{display:none}
+  h2{font-size:30px;margin:26px 0 16px;color:#fff}
+  h2 small{font-size:22px;color:var(--suave);font-weight:400;margin-left:12px}
+  .fila{display:flex;flex-wrap:wrap;gap:24px}
+  .card{width:260px;background:var(--card);border-radius:22px;padding:22px 18px;text-align:center;border:4px solid transparent;transition:transform .12s}
+  .card .logo{width:120px;height:120px;border-radius:20px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;overflow:hidden;background:#24304f}
+  .card .logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+  .card .n{font-size:24px;font-weight:600;line-height:1.2;max-height:58px;overflow:hidden}
+  .card .d{font-size:19px;color:var(--suave);margin-top:6px;max-height:48px;overflow:hidden}
+  .card.ancha{width:420px;text-align:left;display:flex;gap:20px;align-items:center}
+  .card.ancha .logo{margin:0;flex:none;width:110px;height:110px}
+  .vpn{display:inline-block;margin-top:8px;font-size:17px;background:#7a4b00;color:#ffd58a;padding:3px 12px;border-radius:10px}
+  .hero{display:flex;gap:30px;align-items:center;background:linear-gradient(90deg,#0b5e4a,#123a6b);border-radius:26px;padding:30px 36px;border:4px solid transparent;width:100%}
+  .hero .vivo{background:#e0263a;font-size:22px;font-weight:700;padding:6px 16px;border-radius:10px}
+  .hero .t{font-size:38px;font-weight:700}
+  .hero .s{font-size:24px;color:#d6e2ff;margin-top:6px}
+  .aviso{font-size:24px;color:var(--oro);margin:6px 0 4px}
+  [data-f].foco{border-color:var(--oro)!important;transform:scale(1.06);box-shadow:0 0 0 6px rgba(242,182,50,.25)}
+  .tab.foco{transform:scale(1.04)}
+  .estado{font-size:26px;color:var(--suave);padding:40px 0}
+  #barra{position:absolute;left:0;right:0;bottom:0;height:120px;background:rgba(5,8,20,.92);display:none;align-items:center;gap:26px;padding:0 70px;border-top:2px solid rgba(255,255,255,.1)}
+  #barra img{width:80px;height:80px;border-radius:14px;object-fit:contain;background:#fff}
+  #barra .t{font-size:28px;font-weight:600}
+  #barra .s{font-size:21px;color:var(--suave)}
+  #barra .btn{margin-left:auto}
+  .btn{font-size:24px;padding:12px 30px;border-radius:30px;background:var(--acc);border:4px solid transparent;color:#fff}
+  #capa{position:fixed;inset:0;background:#000;display:none;z-index:10}
+  #capa video,#capa iframe{width:100%;height:100%;border:0;background:#000}
+  #capa .ayuda{position:absolute;top:24px;right:34px;font-size:22px;background:rgba(0,0,0,.6);padding:8px 18px;border-radius:12px;color:#ddd}
+  #modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:9}
+  #modal .caja{width:1500px;background:#141c36;border-radius:26px;padding:44px}
+  #modal h3{font-size:36px;margin-bottom:18px}
+  #modal p{font-size:22px;color:#d6dcef;line-height:1.45;white-space:pre-line}
+  #modal .wa{font-size:28px;color:#4be08a;margin-top:22px}
+  #modal .btn{margin-top:30px}
+  .ayudapie{position:absolute;bottom:14px;right:70px;font-size:19px;color:rgba(255,255,255,.45)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="marca">TV y <b>Emisoras</b></div>
+    <nav id="tabs">
+      <div class="tab" data-f data-tab="radio">📻 Emisoras</div>
+      <div class="tab" data-f data-tab="simiti">🏞️ Simití TV</div>
+      <div class="tab" data-f data-tab="gratis">🎬 TV Gratis</div>
+    </nav>
+    <div class="hora" id="hora"></div>
+  </header>
+  <main><div id="contenido"></div></main>
+  <div class="ayudapie">◀ ▶ ▲ ▼ moverse · OK abrir · Atrás volver</div>
+</div>
+<div id="barra">
+  <img id="bImg" alt="">
+  <div><div class="t" id="bT"></div><div class="s" id="bS">Sonando ahora</div></div>
+  <div class="btn" data-f id="bStop">⏹ Detener</div>
+</div>
+<div id="capa"><div class="ayuda">Atrás para salir</div></div>
+<div id="modal"><div class="caja"><h3 id="mT"></h3><p id="mP"></p><div class="wa" id="mW"></div><div class="btn" data-f id="mOk">Volver</div></div></div>
+
+<script>
+/* TV y Emisoras (PicksOnline) para Vega OS. Lee el mismo contenido que la app del Onn:
+   tv.json y simititv.json en el repo PicksOnline-Updates, más Radio Browser. */
+var BASE = "https://raw.githubusercontent.com/pilutech29-cmd/PicksOnline-Updates/main/";
+var RADIO_HOSTS = ["de1","de2","fi1","nl1","at1"].map(function(h){return "https://"+h+".api.radio-browser.info"});
+var WEB_BASE = [
+  {nombre:"Pluto TV",url:"https://pluto.tv/latam/live-tv",detalle:"Canales en vivo gratis",dom:"pluto.tv"},
+  {nombre:"Tubi",url:"https://tubitv.com",detalle:"Películas y series gratis",dom:"tubitv.com",vpn:true},
+  {nombre:"Plex",url:"https://watch.plex.tv/live-tv",detalle:"TV en vivo gratis",dom:"plex.tv"},
+  {nombre:"ViX",url:"https://vix.com",detalle:"Novelas, series y canales",dom:"vix.com"},
+  {nombre:"Canela.TV",url:"https://www.canela.tv",detalle:"Películas y series en español",dom:"canela.tv"}
+];
+
+var datos = {tv:null, simiti:null, radios:null};
+var seccion = "radio";
+var audio = new Audio();
+var hls = null;
+
+/* ---------- utilidades ---------- */
+function guardar(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function cargarLocal(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function traer(url,ms){
+  return new Promise(function(ok,mal){
+    var x=new XMLHttpRequest(),t=setTimeout(function(){x.abort();mal("tiempo")},ms||9000);
+    x.open("GET",url+(url.indexOf("?")<0?"?":"&")+"_="+Date.now());
+    x.onload=function(){clearTimeout(t);x.status<300?ok(x.responseText):mal(x.status)};
+    x.onerror=function(){clearTimeout(t);mal("red")};
+    x.send();
+  });
+}
+function json(url){return traer(url).then(JSON.parse)}
+function esc(s){return String(s||"").replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function iniciales(n){return esc((n||"?").replace(/[^A-Za-zÁÉÍÓÚÑ0-9 ]/g,"").split(" ").filter(Boolean).slice(0,2).map(function(w){return w[0]}).join("").toUpperCase()||"?")}
+function logo(img,nombre,color){
+  var bg=color?(' style="background:'+esc(color)+'"'):"";
+  if(!img) return '<div class="logo"'+bg+'>'+iniciales(nombre)+'</div>';
+  return '<div class="logo"'+bg+'><img src="'+esc(img)+'" onerror="this.parentNode.innerHTML=\''+iniciales(nombre)+'\'"></div>';
+}
+var registro=[];
+function reg(item){registro.push(item);return registro.length-1}
+
+/* ---------- datos ---------- */
+function cargarTv(){
+  return json(BASE+"tv.json").then(function(d){guardar("tv",d);return d}).catch(function(){return cargarLocal("tv")||{}});
+}
+function cargarSimiti(){
+  return json(BASE+"simititv.json").then(function(d){guardar("simiti",d);return d}).catch(function(){return cargarLocal("simiti")});
+}
+function radioBrowser(ruta){
+  var i=0;
+  function intento(){
+    if(i>=RADIO_HOSTS.length) return Promise.reject("sin directorio");
+    var h=RADIO_HOSTS[i++];
+    return json(h+ruta).catch(intento);
+  }
+  return intento();
+}
+function aRadio(arr){
+  return (arr||[]).map(function(o){
+    return {nombre:(o.name||"").trim(),tipo:"audio",url:o.url_resolved||o.url,imagen:o.favicon,
+            detalle:[o.state,(o.tags||"").split(",")[0]].filter(Boolean).join(" · ")};
+  }).filter(function(x){return x.nombre&&x.url});
+}
+function cargarRadios(tv){
+  var propias=(tv.radio||[]).filter(function(o){return o.url&&o.nombre}).map(function(o){
+    return {nombre:o.nombre,tipo:"audio",url:o.url,imagen:o.imagen,detalle:o.detalle||"Destacada"};
+  });
+  var buscar=(tv.radioBuscar||[]).map(function(n){
+    return radioBrowser("/json/stations/search?name="+encodeURIComponent(n)+"&countrycode=CO&hidebroken=true&order=clickcount&reverse=true&limit=3").then(aRadio).catch(function(){return[]});
+  });
+  var publicas=radioBrowser("/json/stations/bycountrycodeexact/CO?order=clickcount&reverse=true&limit=80&hidebroken=true")
+    .then(function(a){guardar("radiosCO",a);return aRadio(a)}).catch(function(){return aRadio(cargarLocal("radiosCO"))});
+  return Promise.all(buscar.concat([publicas])).then(function(listas){
+    var todas=[],vistos={};
+    propias.concat.apply(propias,listas).forEach(function(e){
+      var k=e.nombre.toLowerCase(); if(!vistos[k]){vistos[k]=1;todas.push(e)}
+    });
+    return todas;
+  });
+}
+
+/* ---------- pantallas ---------- */
+function pintar(html){
+  registro=[];
+  var c=document.getElementById("contenido");
+  try{ c.innerHTML=html(); }catch(e){ c.innerHTML='<div class="estado">Error al mostrar: '+esc(e&&e.message||e)+'</div>'; }
+  c.scrollTop=0;
+  var primero=c.querySelector("[data-f]");
+  enfocar(primero||document.querySelector(".tab.activa"));
+}
+function tarjetas(lista,ancha){
+  return '<div class="fila">'+lista.map(function(it){
+    var i=reg(it);
+    return '<div class="card'+(ancha?' ancha':'')+'" data-f data-i="'+i+'">'+logo(it.imagen,it.nombre,it.colorFondo)+
+      '<div><div class="n">'+esc(it.nombre)+'</div><div class="d">'+esc(it.detalle)+'</div>'+
+      (it.vpn?'<div class="vpn">Requiere VPN</div>':'')+'</div></div>';
+  }).join("")+'</div>';
+}
+function mostrarRadio(){
+  if(!datos.radios){pintar(function(){return '<div class="estado">Cargando emisoras…</div>'});return}
+  pintar(function(){
+    if(!datos.radios.length) return '<div class="estado">No se pudieron cargar las emisoras. Revisa la conexión a internet.</div>';
+    var dest=datos.radios.slice(0,datos.nPropias||0), resto=datos.radios.slice(datos.nPropias||0);
+    return (dest.length?'<h2>Destacadas</h2>'+tarjetas(dest):'')+
+           '<h2>Emisoras de Colombia <small>'+resto.length+' emisoras</small></h2>'+tarjetas(resto);
+  });
+}
+function mostrarSimiti(){
+  var s=datos.simiti;
+  if(!s){pintar(function(){return '<div class="estado">Cargando Simití TV…</div>'});return}
+  pintar(function(){
+    var h='';
+    if(datos.simitiError) h+='<div class="estado" style="padding:0 0 10px">'+esc(datos.simitiError)+'</div>';
+    if(s.aviso) h+='<div class="aviso">'+esc(s.aviso)+'</div>';
+    if(s.envivo){
+      var i=reg(s.envivo);
+      h+='<div class="hero" data-f data-i="'+i+'"><span class="vivo">● EN VIVO</span><div><div class="t">'+esc(s.envivo.nombre)+'</div><div class="s">'+esc(s.envivo.detalle)+'</div></div></div>';
+    }
+    (s.secciones||[]).forEach(function(sec){
+      var items=(sec.items||[]).filter(vigente).filter(function(x){return x.nombre});
+      if(!items.length) return;
+      items.forEach(function(x){if(!x.whatsapp)x.whatsapp=s.whatsapp});
+      h+='<h2>'+esc(sec.titulo)+'</h2>'+tarjetas(items,true);
+    });
+    var pub=(s.publicidad||[]).filter(vigente);
+    if(pub.length){pub.forEach(function(x){x.tipo=x.tipo||"aviso";if(!x.whatsapp)x.whatsapp=s.whatsapp});h+='<h2>Negocios del pueblo</h2>'+tarjetas(pub,true)}
+    return h;
+  });
+}
+function vigente(o){
+  if(!o.hasta) return true;
+  var f=Date.parse(o.hasta); return isNaN(f)||Date.now()<f+864e5;
+}
+function mostrarGratis(){
+  var lista=(datos.tv&&datos.tv.web||[]).filter(function(x){return x.url});
+  if(!lista.length) lista=WEB_BASE;
+  lista=lista.map(function(x){
+    var dom=x.dom||(x.url.split("/")[2]||"");
+    return {nombre:x.nombre,tipo:"web",url:x.url,detalle:x.detalle,vpn:x.vpn,
+            imagen:x.imagen||("https://www.google.com/s2/favicons?domain="+dom+"&sz=128")};
+  });
+  pintar(function(){return '<h2>Ver aquí gratis <small>se abren dentro de la app</small></h2>'+tarjetas(lista)});
+}
+function mostrar(sec){
+  seccion=sec;
+  [].forEach.call(document.querySelectorAll(".tab"),function(t){t.classList.toggle("activa",t.getAttribute("data-tab")===sec)});
+  if(sec==="radio") mostrarRadio(); else if(sec==="simiti") mostrarSimiti(); else mostrarGratis();
+}
+
+/* ---------- abrir contenido ---------- */
+function abrir(it){
+  var t=(it.tipo||"").toLowerCase();
+  if(t==="audio") return sonar(it);
+  if(t==="hls"||t==="video") return verVideo(it.url);
+  if(t==="embed") return verEmbed(it.url);
+  if(t==="iframe") return verIframe(it.url);
+  if(t==="web"){
+    if(it.vpn && !confirmarVpn(it)) return;
+    return irA(it.url);
+  }
+  if(t==="ytlive"||t==="youtube") return verIframe(it.url);
+  return verNota(it);
+}
+function confirmarVpn(it){ return true; } /* el aviso ya se ve en la tarjeta */
+function irA(url){ detener(); location.href=url; }
+function alternas(it){
+  var urls=[];
+  /* Si la emisora también está en Simití TV con otra dirección (p. ej. https live.mp3), se prueba primero esa */
+  var n=(it.nombre||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  ((datos.simiti&&datos.simiti.secciones)||[]).forEach(function(s){(s.items||[]).forEach(function(x){
+    var m=(x.nombre||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+    if(x.tipo==="audio"&&x.url&&m&&(m.indexOf(n.slice(0,10))>=0||n.indexOf(m.slice(0,10))>=0)) urls.push(x.url);
+  })});
+  if(/^https:/i.test(it.url)) urls.unshift(it.url); else urls.push(it.url);
+  /* listen2myradio: la señal directa del servidor (http://host:puerto/;) sirve al reproductor nativo */
+  urls.slice().forEach(function(u){ var m=/^https?:\/\/([^\/]+listen2myradio\.com)\/live\.mp3\?typeportmount=s1_(\d+)_/i.exec(u||""); if(m) urls.push("http://"+m[1]+":"+m[2]+"/;"); });
+  var sh=/^http:\/\/([^\/:]+):(\d+)\/?;?$/i.exec(it.url||"");
+  if(sh){ urls.push("http://"+sh[1]+":"+sh[2]+"/stream"); urls.push("http://"+sh[1]+":"+sh[2]+"/;stream.mp3"); }
+  return urls.filter(function(u,i){return u&&urls.indexOf(u)===i});
+}
+var colaAudio=[], diag=[], probadas=[], nativoSonando=false;
+var ERR={1:"cancelado",2:"error de red",3:"no se pudo decodificar",4:"formato no soportado"};
+audio.onplaying=function(){document.getElementById("bS").textContent="Sonando ahora"};
+function probarSiguiente(){
+  if(!colaAudio.length){ audio.removeAttribute("src");
+    if(window.ReactNativeWebView && probadas.length){ return sonarNativo(); }
+    verNota({nombre:"Emisora no disponible",detalle:"Su señal no es compatible o no está transmitiendo.\n\nInforme técnico:\n"+diag.join("\n")}); return; }
+  audio.src=colaAudio.shift(); probadas.push(audio.getAttribute("src"));
+  audio.play().catch(function(){});
+}
+/* Como en la app del Onn: algunas emisoras cambian su enlace a diario; se lee el vigente desde su página. */
+var PAGINAS={simiti:"https://simitioriginalstereo.radio12345.com/"};
+function paginaDe(it){
+  if(it.pagina) return it.pagina;
+  if(/simit/i.test(it.nombre||"")) return PAGINAS.simiti;
+  return "";
+}
+/* Pedido a la parte nativa (App.tsx), que sí puede leer otros sitios. */
+var pedidos={}, nPedido=0;
+window.picksRespuesta=function(id,valor){ var f=pedidos[id]; if(f){delete pedidos[id]; f(valor)} };
+function pedirNativo(pag){
+  return new Promise(function(ok){
+    if(!(window.ReactNativeWebView&&window.ReactNativeWebView.postMessage)) return ok(null);
+    var id=++nPedido; pedidos[id]=ok;
+    setTimeout(function(){ if(pedidos[id]){delete pedidos[id]; ok(null)} },8000);
+    window.ReactNativeWebView.postMessage(JSON.stringify({tipo:"pagina",id:id,url:pag}));
+  });
+}
+function streamDePagina(pag){
+  return pedirNativo(pag).then(function(u){ diag.push("Parte nativa: "+(window.ReactNativeWebView?(u?"respondió":"sin respuesta"):"no disponible")); return u || leerPagina(pag); });
+}
+function leerPagina(pag){
+  return traer(pag,7000).then(function(html){
+    var m=/https?:\/\/[^\s"'<>]+?(?:live\.mp3|\.mp3|\.aac|\.m3u8|\/stream|\/;)[^\s"'<>]*/i.exec(html);
+    return m?m[0].replace(/&amp;/g,"&"):null;
+  }).catch(function(){return null});
+}
+/* Si el reproductor de la página no acepta la señal, la reproduce la parte nativa (App.tsx). */
+function sonarNativo(){
+  document.getElementById("bS").textContent="Conectando con el reproductor del Fire TV…";
+  pedirNativoAudio(probadas).then(function(u){
+    if(u){ nativoSonando=true; document.getElementById("bS").textContent="Sonando ahora"; }
+    else { diag.push("Reproductor nativo: tampoco pudo"); verNota({nombre:"Emisora no disponible",detalle:"Su señal no es compatible o no está transmitiendo.\n\nInforme técnico:\n"+diag.join("\n")}); }
+  });
+}
+function pedirNativoAudio(urls){
+  return new Promise(function(ok){
+    var id=++nPedido; pedidos[id]=ok;
+    setTimeout(function(){ if(pedidos[id]){delete pedidos[id]; ok(null)} },45000);
+    window.ReactNativeWebView.postMessage(JSON.stringify({tipo:"audio",id:id,urls:urls}));
+  });
+}
+function sonar(it){
+  pararNativo(); probadas=[];
+  colaAudio=alternas(it);
+  document.getElementById("bS").textContent="Conectando…";
+  var pag=paginaDe(it);
+  diag=["Página de la emisora: "+(pag||"(ninguna)")];
+  var listo=function(u){ diag.push("Enlace del día: "+(u?u.slice(0,90):"no se pudo obtener")); if(u) colaAudio.unshift(u); colaAudio=colaAudio.filter(function(x,i){return colaAudio.indexOf(x)===i}); probarSiguiente(); };
+  if(pag) streamDePagina(pag).then(listo); else listo(null);
+  document.getElementById("bT").textContent=it.nombre;
+  var im=document.getElementById("bImg"); im.style.display=it.imagen?"":"none"; if(it.imagen) im.src=it.imagen;
+  document.getElementById("barra").style.display="flex";
+}
+audio.onerror=function(){ var s=audio.getAttribute("src"); if(s){ var e=audio.error; diag.push("✗ "+s.slice(0,90)+" → "+(e?(ERR[e.code]||e.code)+(e.message?" ("+e.message.slice(0,60)+")":""):"error")); probarSiguiente(); } };
+function pararNativo(){ if(nativoSonando&&window.ReactNativeWebView){ window.ReactNativeWebView.postMessage(JSON.stringify({tipo:"audioStop"})); } nativoSonando=false; }
+function detener(){ pararNativo(); colaAudio=[]; audio.pause(); audio.removeAttribute("src"); document.getElementById("barra").style.display="none"; }
+function capa(html){
+  detener();
+  var c=document.getElementById("capa");
+  c.innerHTML='<div class="ayuda">Atrás para salir</div>'+html;
+  c.style.display="block";
+  return c;
+}
+function verVideo(url){
+  var c=capa('<video autoplay controls playsinline></video>'),v=c.querySelector("video");
+  if(/\.m3u8/i.test(url) && !v.canPlayType("application/vnd.apple.mpegurl")){
+    usarHls(function(){
+      if(window.Hls&&Hls.isSupported()){hls=new Hls();hls.loadSource(url);hls.attachMedia(v)}
+      else v.src=url;
+    });
+  } else v.src=url;
+  v.onerror=function(){cerrarCapa();aviso("Esta señal no está disponible ahora.")};
+}
+function usarHls(listo){
+  if(window.Hls) return listo();
+  var s=document.createElement("script");
+  s.src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js";
+  s.onload=listo; s.onerror=listo; document.head.appendChild(s);
+}
+function verEmbed(url){
+  var pid=(/pid=([\w-]+)/.exec(url)||[])[1]||"player";
+  var c=capa('<div id="'+esc(pid)+'" style="position:absolute;inset:0;display:flex;align-items:center"></div>'+
+    '<style>#'+pid+' .video-js{width:100vw!important;height:100vh!important;padding-top:0!important}video{object-fit:contain}</style>');
+  var s=document.createElement("script"); s.src=url;
+  s.onerror=function(){cerrarCapa();aviso("No se pudo cargar la señal en vivo. Intenta más tarde.")};
+  c.querySelector("div[id]").appendChild(s);
+  var n=0, t=setInterval(function(){
+    if(c.style.display!=="block"||++n>20){clearInterval(t);return}
+    var v=c.querySelector("video"); if(v&&v.paused){v.muted=false;var p=v.play();if(p&&p.catch)p.catch(function(){})}
+    var b=c.querySelector(".vjs-big-play-button"); if(b&&v&&v.paused) b.click();
+  },1500);
+}
+function verIframe(url){ capa('<iframe src="'+esc(url)+'" allow="autoplay; fullscreen; encrypted-media"></iframe>'); }
+function cerrarCapa(){
+  var c=document.getElementById("capa");
+  if(hls){hls.destroy();hls=null}
+  c.innerHTML=""; c.style.display="none";
+}
+function verNota(it){
+  document.getElementById("mT").textContent=it.nombre;
+  document.getElementById("mP").textContent=it.descripcion||it.detalle||"";
+  var w=it.whatsapp?String(it.whatsapp).replace(/^57/,""):"";
+  document.getElementById("mW").textContent=w?("WhatsApp: "+w.replace(/(\d{3})(\d{3})(\d+)/,"$1 $2 $3")):"";
+  document.getElementById("modal").style.display="flex";
+  enfocar(document.getElementById("mOk"));
+}
+function aviso(txt){ verNota({nombre:"Aviso",detalle:txt}); }
+function cerrarModal(){ document.getElementById("modal").style.display="none"; enfocar(ultimoFoco); }
+
+/* ---------- navegación con el control ---------- */
+var foco=null, ultimoFoco=null;
+function enfocables(){
+  var m=document.getElementById("modal");
+  if(m.style.display==="flex") return [].slice.call(m.querySelectorAll("[data-f]"));
+  return [].slice.call(document.querySelectorAll("#tabs [data-f], #contenido [data-f], #barra[style*=flex] [data-f]"));
+}
+function enfocar(el){
+  if(!el) return;
+  if(foco) foco.classList.remove("foco");
+  foco=el; el.classList.add("foco");
+  if(document.getElementById("modal").style.display!=="flex") ultimoFoco=el;
+  if(el.closest("#contenido")) el.scrollIntoView({block:"center",behavior:"smooth"});
+  else if(el.classList.contains("tab")) document.getElementById("contenido").scrollTop=0;
+}
+function mover(dir){
+  var lista=enfocables(); if(!foco||lista.indexOf(foco)<0){enfocar(lista[0]);return}
+  var a=foco.getBoundingClientRect(), ax=a.left+a.width/2, ay=a.top+a.height/2, mejor=null, md=1e9;
+  lista.forEach(function(el){
+    if(el===foco) return;
+    var b=el.getBoundingClientRect(), bx=b.left+b.width/2, by=b.top+b.height/2, dx=bx-ax, dy=by-ay;
+    var ok = dir==="izq"?dx<-5&&Math.abs(dy)<a.height*0.6 : dir==="der"?dx>5&&Math.abs(dy)<a.height*0.6 : dir==="arr"?dy<-5 : dy>5;
+    if(!ok) return;
+    var d = (dir==="izq"||dir==="der") ? Math.abs(dx)+Math.abs(dy)*3 : Math.abs(dy)+Math.abs(dx)*0.5;
+    if(d<md){md=d;mejor=el}
+  });
+  if(mejor) enfocar(mejor);
+}
+function ok(){
+  if(!foco) return;
+  if(foco.id==="mOk") return cerrarModal();
+  if(foco.id==="bStop") return detener(), enfocar(document.querySelector("#contenido [data-f]")||document.querySelector(".tab.activa"));
+  var tab=foco.getAttribute("data-tab"); if(tab) return mostrar(tab);
+  var i=foco.getAttribute("data-i"); if(i!==null) abrir(registro[+i]);
+}
+function atras(){
+  if(document.getElementById("modal").style.display==="flex"){cerrarModal();return true}
+  if(document.getElementById("capa").style.display==="block"){cerrarCapa();return true}
+  if(foco && !foco.classList.contains("tab")){enfocar(document.querySelector(".tab.activa"));return true}
+  return false; /* en las pestañas: deja que el sistema cierre la app */
+}
+document.addEventListener("keydown",function(e){
+  var k=e.key, c=e.keyCode;
+  if(document.getElementById("capa").style.display==="block" && !(k==="Escape"||k==="Backspace"||k==="GoBack"||c===27||c===8||c===4)) return;
+  if(k==="ArrowLeft"||c===37) mover("izq");
+  else if(k==="ArrowRight"||c===39) mover("der");
+  else if(k==="ArrowUp"||c===38) mover("arr");
+  else if(k==="ArrowDown"||c===40) mover("abj");
+  else if(k==="Enter"||c===13||c===23) ok();
+  else if(k==="Escape"||k==="Backspace"||k==="GoBack"||c===27||c===8||c===4){ if(!atras()) return; }
+  else return;
+  e.preventDefault();
+});
+/* El botón Atrás del control también puede llegar desde la app (App.tsx) llamando a esta función. */
+window.picksAtras=function(){ return atras(); };
+document.addEventListener("click",function(e){var el=e.target.closest("[data-f]"); if(el){enfocar(el);ok()}});
+
+/* ---------- inicio ---------- */
+function reloj(){var d=new Date();document.getElementById("hora").textContent=d.toLocaleTimeString("es-CO",{hour:"numeric",minute:"2-digit"})}
+reloj(); setInterval(reloj,30000);
+datos.tv=cargarLocal("tv"); datos.simiti=cargarLocal("simiti");
+mostrar("radio");
+cargarTv().then(function(tv){
+  datos.tv=tv;
+  datos.nPropias=(tv.radio||[]).filter(function(o){return o.url}).length;
+  if(seccion==="gratis") mostrarGratis();
+  return cargarRadios(tv);
+}).then(function(r){datos.radios=r; if(seccion==="radio") mostrarRadio()})
+  .catch(function(){datos.radios=[]; if(seccion==="radio") mostrarRadio()});
+var simitiListo=false;
+setTimeout(function(){ if(!simitiListo){ simitiListo=true; datos.simiti=datos.simiti||SIMITI_FABRICA; datos.simitiError="No se pudo leer simititv.json (sin respuesta de internet)"; if(seccion==="simiti") mostrarSimiti(); } },12000);
+var SIMITI_FABRICA={aviso:"Bienvenidos a Simití TV",secciones:[{titulo:"Radio del pueblo",items:[{nombre:"Simití Original Stereo 89.0 FM",tipo:"audio",url:"https://uk16freenew.listen2myradio.com/live.mp3?typeportmount=s1_10902_stream_459185054",imagen:"https://simitioriginalstereo.radio12345.com/users.img/2975070/1596378477/icon_thumb_80_1596378477.jpg",detalle:"La emisora del pueblo"}]}]};
+cargarSimiti().then(function(s){ simitiListo=true; if(!s) datos.simitiError="Sin conexión: mostrando la copia guardada";
+  datos.simiti=s||SIMITI_FABRICA;
+  if(seccion==="simiti") mostrarSimiti();
+});
+</script>
+</body>
+</html>
